@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>สร้าง QR Code สำหรับเช็คชื่อ</title>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -200,6 +200,11 @@
             
             // สร้าง QR Code
             try {
+                // ตรวจสอบว่า QRCode library โหลดเสร็จแล้วหรือยัง
+                if (typeof QRCode === 'undefined') {
+                    throw new Error('QR Code library ยังไม่โหลดเสร็จ กรุณารอสักครู่');
+                }
+                
                 const canvas = await QRCode.toCanvas(checkInURL, {
                     width: 256,
                     margin: 2,
@@ -214,6 +219,7 @@
                 qrContainer.style.display = 'block';
                 
             } catch (error) {
+                console.error('QR Code Error:', error);
                 alert('เกิดข้อผิดพลาดในการสร้าง QR Code: ' + error.message);
             }
         });
@@ -240,6 +246,17 @@
         // ตั้งค่าวันที่และเวลาเริ่มต้น
         document.getElementById('sessionDate').value = new Date().toISOString().split('T')[0];
         document.getElementById('sessionTime').value = new Date().toTimeString().slice(0, 5);
+        
+        // ตรวจสอบการโหลด QRCode library
+        function checkQRCodeLibrary() {
+            if (typeof QRCode === 'undefined') {
+                console.log('QRCode library ยังไม่โหลด กำลังรอ...');
+                setTimeout(checkQRCodeLibrary, 100);
+            } else {
+                console.log('QRCode library โหลดเสร็จแล้ว');
+            }
+        }
+        checkQRCodeLibrary();
     </script>
 </body>
 </html>
