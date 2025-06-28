@@ -188,8 +188,8 @@
                 sessionId: Date.now().toString()
             };
             
-            // สร้าง URL สำหรับหน้าเช็คชื่อ
-            const baseURL = window.location.origin + window.location.pathname.replace('instructor.html', '');
+            // สร้าง URL สำหรับหน้าเช็คชื่อ (ปรับให้เหมาะกับ GitHub Pages)
+            const baseURL = window.location.origin + window.location.pathname.replace('/instructor.html', '/Checker/');
             const checkInURL = `${baseURL}checkin.html?${new URLSearchParams(sessionData).toString()}`;
             
             // แสดง URL

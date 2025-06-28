@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบเช็คชื่อผู้อบรม - QR Code Attendance System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .header {
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 18px;
+            line-height: 1.6;
+        }
+        
+        .features {
+            margin: 40px 0;
+            text-align: left;
+        }
+        
+        .features h3 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .feature-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .feature-item h4 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .feature-item ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .feature-item li {
+            margin: 8px 0;
+            color: #555;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .feature-item li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            display: block;
+            padding: 20px 30px;
+            border-radius: 15px;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+        
+        .github-link {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #f0f0f0;
+        }
+        
+        .github-link a {
+            color: #666;
+            text-decoration: none;
+            font-size: 16px;
+            transition: color 0.2s ease;
+        }
+        
+        .github-link a:hover {
+            color: #333;
+        }
+        
+        .demo-info {
+            background: #e7f3ff;
+            border: 2px solid #007bff;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: left;
+        }
+        
+        .demo-info h4 {
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+        
+        .demo-info p {
+            color: #333;
+            margin: 8px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            .header h1 {
+                font-size: 28px;
+            }
+            
+            .feature-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 ระบบเช็คชื่อผู้อบรม</h1>
+            <p>ระบบเช็คชื่อด้วย QR Code ที่ทันสมัย รวดเร็ว และใช้งานง่าย<br>
+            พร้อมเชื่อมต่อกับ Google Sheets เพื่อจัดเก็บข้อมูลอัตโนมัติ</p>
+        </div>
+        
+        <div class="features">
+            <h3>✨ คุณสมบัติหลัก</h3>
+            <div class="feature-list">
+                <div class="feature-item">
+                    <h4>👨‍🏫 สำหรับผู้สอน</h4>
+                    <ul>
+                        <li>สร้างการอบรมใหม่</li>
+                        <li>สร้าง QR Code</li>
+                        <li>แจกจ่าย Link ให้ผู้อบรม</li>
+                        <li>ดาวน์โหลด QR Code</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-item">
+                    <h4>👩‍🎓 สำหรับผู้อบรม</h4>
+                    <ul>
+                        <li>สแกน QR Code บัตรประชาชน</li>
+                        <li>กรอกข้อมูลด้วยตนเอง</li>
+                        <li>เช็คชื่อง่ายและรวดเร็ว</li>
+                        <li>ใช้งานบนมือถือได้</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-info">
+            <h4>📋 ข้อมูลการทดสอบ</h4>
+            <p><strong>Google Sheets:</strong> ระบบจะบันทึกข้อมูลลงใน Google Sheets อัตโนมัติ</p>
+            <p><strong>QR Code:</strong> รองรับการสแกน QR Code บัตรประชาชนไทย</p>
+            <p><strong>ความปลอดภัย:</strong> ข้อมูลถูกเข้ารหัสและไม่เก็บในเบราว์เซอร์</p>
+        </div>
+        
+        <div class="buttons">
+            <a href="instructor.html" class="btn btn-primary">
+                👨‍🏫 สำหรับผู้สอน<br>
+                <small style="font-size: 14px; opacity: 0.9;">สร้าง QR Code และจัดการการอบรม</small>
+            </a>
+            
+            <a href="checkin.html" class="btn btn-success">
+                👩‍🎓 สำหรับผู้อบรม<br>
+                <small style="font-size: 14px; opacity: 0.9;">เช็คชื่อและลงทะเบียน</small>
+            </a>
+        </div>
+        
+        <div class="github-link">
+            <a href="https://github.com/techit45/Checker" target="_blank">
+                📂 ดูซอร์สโค้ดบน GitHub
+            </a>
+        </div>
+    </div>
+</body>
+</html>

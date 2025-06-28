@@ -1,0 +1,66 @@
+# GitHub Pages Configuration for QR Code Attendance System
+
+# Site settings
+title: "ระบบเช็คชื่อผู้อบรม - QR Code Attendance System"
+description: "ระบบเช็คชื่อด้วย QR Code ที่ทันสมัย รวดเร็ว และใช้งานง่าย พร้อมเชื่อมต่อกับ Google Sheets"
+url: "https://techit45.github.io"
+baseurl: "/Checker"
+
+# Repository information
+repository: "techit45/Checker"
+
+# Jekyll settings
+markdown: kramdown
+highlighter: rouge
+theme: minima
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Exclude files from processing
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+
+# Include files that would normally be excluded
+include:
+  - _pages
+
+# Default layout for pages
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "default"
+
+# SEO settings
+lang: th
+author: "AI Assistant"
+twitter:
+  card: summary
+  username: techit45
+
+# Social links
+social:
+  name: "TechIT"
+  links:
+    - "https://github.com/techit45"
+
+# Google Analytics (optional)
+# google_analytics: UA-XXXXXXXXX-X
+
+# Additional settings for GitHub Pages
+future: true
+safe: true
+incremental: false
+lsi: false
