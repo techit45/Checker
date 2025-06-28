@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สร้าง QR Code สำหรับเช็คชื่อ</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .header {
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .qr-container {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            display: none;
+        }
+        
+        #qrcode {
+            margin: 20px auto;
+        }
+        
+        .url-display {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            word-break: break-all;
+            border: 2px dashed #667eea;
+        }
+        
+        .copy-btn {
+            background: #28a745;
+            margin-top: 10px;
+        }
+        
+        .copy-btn:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 สร้าง QR Code เช็คชื่อ</h1>
+            <p>สำหรับผู้สอน - สร้าง QR Code สำหรับผู้อบรมสแกนเช็คชื่อ</p>
+        </div>
+        
+        <form id="qrForm">
+            <div class="form-group">
+                <label for="sessionName">ชื่อการอบรม:</label>
+                <input type="text" id="sessionName" placeholder="เช่น การอบรมเทคโนโลยี AI" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="sessionDate">วันที่อบรม:</label>
+                <input type="date" id="sessionDate" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="sessionTime">เวลา:</label>
+                <input type="time" id="sessionTime" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="location">สถานที่:</label>
+                <input type="text" id="location" placeholder="เช่น ห้องประชุม A" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="instructor">ชื่อผู้สอน:</label>
+                <input type="text" id="instructor" placeholder="ชื่อผู้สอน" required>
+            </div>
+            
+            <button type="submit">🔗 สร้าง QR Code</button>
+        </form>
+        
+        <div class="qr-container" id="qrContainer">
+            <h3>QR Code สำหรับผู้อบรม</h3>
+            <div id="qrcode"></div>
+            <div class="url-display" id="urlDisplay"></div>
+            <button class="copy-btn" id="copyBtn">📋 คัดลอก Link</button>
+            <button id="downloadBtn">💾 ดาวน์โหลด QR Code</button>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('qrForm');
+        const qrContainer = document.getElementById('qrContainer');
+        const qrCodeDiv = document.getElementById('qrcode');
+        const urlDisplay = document.getElementById('urlDisplay');
+        const copyBtn = document.getElementById('copyBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        
+        let currentCanvas = null;
+        
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const sessionData = {
+                sessionName: document.getElementById('sessionName').value,
+                sessionDate: document.getElementById('sessionDate').value,
+                sessionTime: document.getElementById('sessionTime').value,
+                location: document.getElementById('location').value,
+                instructor: document.getElementById('instructor').value,
+                sessionId: Date.now().toString()
+            };
+            
+            // สร้าง URL สำหรับหน้าเช็คชื่อ
+            const baseURL = window.location.origin + window.location.pathname.replace('instructor.html', '');
+            const checkInURL = `${baseURL}checkin.html?${new URLSearchParams(sessionData).toString()}`;
+            
+            // แสดง URL
+            urlDisplay.textContent = checkInURL;
+            
+            // ล้าง QR Code เดิม
+            qrCodeDiv.innerHTML = '';
+            
+            // สร้าง QR Code
+            try {
+                const canvas = await QRCode.toCanvas(checkInURL, {
+                    width: 256,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    }
+                });
+                
+                currentCanvas = canvas;
+                qrCodeDiv.appendChild(canvas);
+                qrContainer.style.display = 'block';
+                
+            } catch (error) {
+                alert('เกิดข้อผิดพลาดในการสร้าง QR Code: ' + error.message);
+            }
+        });
+        
+        copyBtn.addEventListener('click', function() {
+            navigator.clipboard.writeText(urlDisplay.textContent).then(function() {
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = '✅ คัดลอกแล้ว!';
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                }, 2000);
+            });
+        });
+        
+        downloadBtn.addEventListener('click', function() {
+            if (currentCanvas) {
+                const link = document.createElement('a');
+                link.download = 'qr-code-checkin.png';
+                link.href = currentCanvas.toDataURL();
+                link.click();
+            }
+        });
+        
+        // ตั้งค่าวันที่และเวลาเริ่มต้น
+        document.getElementById('sessionDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('sessionTime').value = new Date().toTimeString().slice(0, 5);
+    </script>
+</body>
+</html>

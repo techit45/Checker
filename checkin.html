@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เช็คชื่อผู้อบรม</title>
+    <script src="https://unpkg.com/html5-qrcode@2.3.4/minified/html5-qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .session-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+        
+        .session-info h3 {
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+        
+        .session-info p {
+            margin: 5px 0;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .scanner-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .scanner-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        #reader {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .manual-section {
+            border-top: 2px solid #f0f0f0;
+            padding-top: 30px;
+            margin-top: 30px;
+        }
+        
+        .manual-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .scanner-controls {
+            margin-top: 15px;
+        }
+        
+        .scanner-controls button {
+            width: auto;
+            margin: 0 10px;
+            padding: 10px 20px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .qr-data-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+        
+        .toggle-manual {
+            background: #6c757d;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 เช็คชื่อผู้อบรม</h1>
+            <div class="session-info" id="sessionInfo">
+                <h3 id="sessionName">กำลังโหลดข้อมูลการอบรม...</h3>
+                <p><strong>📅 วันที่:</strong> <span id="sessionDate">-</span></p>
+                <p><strong>⏰ เวลา:</strong> <span id="sessionTime">-</span></p>
+                <p><strong>📍 สถานที่:</strong> <span id="location">-</span></p>
+                <p><strong>👨‍🏫 ผู้สอน:</strong> <span id="instructor">-</span></p>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="scanner-section">
+                <h2>🔍 สแกน QR Code บัตรประชาชน</h2>
+                <div id="reader"></div>
+                <div class="scanner-controls">
+                    <button id="startScanBtn">📷 เริ่มสแกน</button>
+                    <button id="stopScanBtn" style="display: none;">⏹️ หยุดสแกน</button>
+                </div>
+                <button class="toggle-manual" id="toggleManualBtn">✏️ กรอกข้อมูลด้วยตนเอง</button>
+            </div>
+            
+            <div class="qr-data-display hidden" id="qrDataDisplay">
+                <h4>ข้อมูลจาก QR Code:</h4>
+                <div id="qrDataContent"></div>
+            </div>
+            
+            <div class="manual-section hidden" id="manualSection">
+                <h3>📝 กรอกข้อมูลด้วยตนเอง</h3>
+                <form id="checkinForm">
+                    <div class="form-group">
+                        <label for="citizenId">หมายเลขบัตรประชาชน:</label>
+                        <input type="text" id="citizenId" placeholder="x-xxxx-xxxxx-xx-x" maxlength="17" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fullName">ชื่อ-นามสกุล:</label>
+                        <input type="text" id="fullName" placeholder="ชื่อ นามสกุล" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="nickname">ชื่อเล่น:</label>
+                        <input type="text" id="nickname" placeholder="ชื่อเล่น" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="birthDate">วันเกิด:</label>
+                        <input type="date" id="birthDate" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="address">ที่อยู่:</label>
+                        <textarea id="address" rows="3" placeholder="ที่อยู่ตามบัตรประชาชน" required></textarea>
+                    </div>
+                    
+                    <button type="submit" id="submitBtn">✅ ยืนยันการเช็คชื่อ</button>
+                </form>
+            </div>
+            
+            <div class="loading" id="loading">
+                <p>⏳ กำลังบันทึกข้อมูล...</p>
+            </div>
+            
+            <div class="success-message" id="successMessage">
+                <h4>✅ เช็คชื่อสำเร็จ!</h4>
+                <p>ขอบคุณที่เข้าร่วมการอบรม</p>
+            </div>
+            
+            <div class="error-message" id="errorMessage">
+                <h4>❌ เกิดข้อผิดพลาด</h4>
+                <p id="errorText">กรุณาลองใหม่อีกครั้ง</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let html5QrcodeScanner = null;
+        let sessionData = {};
+        let isScanning = false;
+        
+        // อ่านข้อมูลการอบรมจาก URL parameters
+        function loadSessionData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            sessionData = {
+                sessionName: urlParams.get('sessionName') || 'การอบรม',
+                sessionDate: urlParams.get('sessionDate') || '',
+                sessionTime: urlParams.get('sessionTime') || '',
+                location: urlParams.get('location') || '',
+                instructor: urlParams.get('instructor') || '',
+                sessionId: urlParams.get('sessionId') || Date.now().toString()
+            };
+            
+            // แสดงข้อมูลการอบรม
+            document.getElementById('sessionName').textContent = sessionData.sessionName;
+            document.getElementById('sessionDate').textContent = formatDate(sessionData.sessionDate);
+            document.getElementById('sessionTime').textContent = sessionData.sessionTime;
+            document.getElementById('location').textContent = sessionData.location;
+            document.getElementById('instructor').textContent = sessionData.instructor;
+        }
+        
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('th-TH', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+        
+        // เริ่มการสแกน QR Code
+        function startScanning() {
+            if (isScanning) return;
+            
+            html5QrcodeScanner = new Html5Qrcode("reader");
+            
+            Html5Qrcode.getCameras().then(devices => {
+                if (devices && devices.length) {
+                    const cameraId = devices[0].id;
+                    
+                    html5QrcodeScanner.start(
+                        cameraId,
+                        {
+                            fps: 10,
+                            qrbox: { width: 250, height: 250 }
+                        },
+                        onScanSuccess,
+                        onScanFailure
+                    ).then(() => {
+                        isScanning = true;
+                        document.getElementById('startScanBtn').style.display = 'none';
+                        document.getElementById('stopScanBtn').style.display = 'inline-block';
+                    }).catch(err => {
+                        showError('ไม่สามารถเปิดกล้องได้: ' + err);
+                    });
+                } else {
+                    showError('ไม่พบกล้องในอุปกรณ์');
+                }
+            }).catch(err => {
+                showError('ไม่สามารถเข้าถึงกล้องได้: ' + err);
+            });
+        }
+        
+        // หยุดการสแกน
+        function stopScanning() {
+            if (html5QrcodeScanner && isScanning) {
+                html5QrcodeScanner.stop().then(() => {
+                    isScanning = false;
+                    document.getElementById('startScanBtn').style.display = 'inline-block';
+                    document.getElementById('stopScanBtn').style.display = 'none';
+                }).catch(err => {
+                    console.error('Error stopping scanner:', err);
+                });
+            }
+        }
+        
+        // เมื่อสแกน QR Code สำเร็จ
+        function onScanSuccess(decodedText, decodedResult) {
+            console.log('QR Code scanned:', decodedText);
+            
+            try {
+                // ลองแปลงข้อมูล QR Code บัตรประชาชน
+                const qrData = parseThaiIDCardQR(decodedText);
+                
+                if (qrData) {
+                    displayQRData(qrData);
+                    populateForm(qrData);
+                    showManualSection();
+                    stopScanning();
+                } else {
+                    showError('QR Code ไม่ใช่ของบัตรประชาชนไทย');
+                }
+                
+            } catch (error) {
+                console.error('Error parsing QR data:', error);
+                showError('ไม่สามารถอ่านข้อมูลจาก QR Code ได้');
+            }
+        }
+        
+        function onScanFailure(error) {
+            // ไม่ต้องแสดง error ทุกครั้งที่สแกนไม่สำเร็จ
+        }
+        
+        // แปลงข้อมูล QR Code บัตรประชาชนไทย
+        function parseThaiIDCardQR(qrText) {
+            // QR Code บัตรประชาชนไทยมีรูปแบบ: 
+            // หมายเลขบัตร|ชื่อ|นามสกุล|วันเกิด|ที่อยู่|...
+            const parts = qrText.split('|');
+            
+            if (parts.length >= 5) {
+                const birthDateParts = parts[3].split('/');
+                let birthDate = '';
+                if (birthDateParts.length === 3) {
+                    // แปลง DD/MM/YYYY (BE) เป็น YYYY-MM-DD (CE)
+                    const year = parseInt(birthDateParts[2]) - 543; // แปลง พ.ศ. เป็น ค.ศ.
+                    birthDate = `${year}-${birthDateParts[1].padStart(2, '0')}-${birthDateParts[0].padStart(2, '0')}`;
+                }
+                
+                return {
+                    citizenId: parts[0],
+                    firstName: parts[1],
+                    lastName: parts[2],
+                    fullName: `${parts[1]} ${parts[2]}`,
+                    birthDate: birthDate,
+                    address: parts[4]
+                };
+            }
+            
+            return null;
+        }
+        
+        // แสดงข้อมูลที่อ่านได้จาก QR Code
+        function displayQRData(qrData) {
+            const qrDataDisplay = document.getElementById('qrDataDisplay');
+            const qrDataContent = document.getElementById('qrDataContent');
+            
+            qrDataContent.innerHTML = `
+                <p><strong>หมายเลขบัตรประชาชน:</strong> ${qrData.citizenId}</p>
+                <p><strong>ชื่อ-นามสกุล:</strong> ${qrData.fullName}</p>
+                <p><strong>วันเกิด:</strong> ${formatDate(qrData.birthDate)}</p>
+                <p><strong>ที่อยู่:</strong> ${qrData.address}</p>
+            `;
+            
+            qrDataDisplay.classList.remove('hidden');
+        }
+        
+        // เติมข้อมูลในฟอร์ม
+        function populateForm(qrData) {
+            document.getElementById('citizenId').value = formatCitizenId(qrData.citizenId);
+            document.getElementById('fullName').value = qrData.fullName;
+            document.getElementById('birthDate').value = qrData.birthDate;
+            document.getElementById('address').value = qrData.address;
+        }
+        
+        // จัดรูปแบบหมายเลขบัตรประชาชน
+        function formatCitizenId(citizenId) {
+            const cleaned = citizenId.replace(/\D/g, '');
+            if (cleaned.length === 13) {
+                return `${cleaned.slice(0,1)}-${cleaned.slice(1,5)}-${cleaned.slice(5,10)}-${cleaned.slice(10,12)}-${cleaned.slice(12,13)}`;
+            }
+            return citizenId;
+        }
+        
+        // แสดงส่วนกรอกข้อมูลด้วยตนเอง
+        function showManualSection() {
+            document.getElementById('manualSection').classList.remove('hidden');
+        }
+        
+        // ซ่อนส่วนกรอกข้อมูลด้วยตนเอง
+        function hideManualSection() {
+            document.getElementById('manualSection').classList.add('hidden');
+        }
+        
+        // แสดงข้อความสำเร็จ
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            if (message) {
+                successDiv.querySelector('p').textContent = message;
+            }
+            successDiv.style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+        
+        // แสดงข้อความผิดพลาด
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            document.getElementById('errorText').textContent = message;
+            errorDiv.style.display = 'block';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+        
+        // ซ่อนข้อความทั้งหมด
+        function hideMessages() {
+            document.getElementById('successMessage').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+        
+        // บันทึกข้อมูลลง Google Sheets
+        async function submitToGoogleSheets(formData) {
+            const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyRBpHS45wdFJ0MuE9OwD30YZyvpFbvKvynLgvY64okZaOS_zAi8ODAFEwyPeUNAh2d/exec';
+            
+            try {
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                return result;
+                
+            } catch (error) {
+                console.error('Error submitting to Google Sheets:', error);
+                throw error;
+            }
+        }
+        
+        // Event Listeners
+        document.getElementById('startScanBtn').addEventListener('click', startScanning);
+        document.getElementById('stopScanBtn').addEventListener('click', stopScanning);
+        
+        document.getElementById('toggleManualBtn').addEventListener('click', function() {
+            const manualSection = document.getElementById('manualSection');
+            if (manualSection.classList.contains('hidden')) {
+                showManualSection();
+                this.textContent = '📷 กลับไปสแกน QR Code';
+            } else {
+                hideManualSection();
+                this.textContent = '✏️ กรอกข้อมูลด้วยตนเอง';
+            }
+        });
+        
+        // จัดรูปแบบหมายเลขบัตรประชาชนขณะพิมพ์
+        document.getElementById('citizenId').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 13) value = value.slice(0, 13);
+            
+            if (value.length >= 1) {
+                let formatted = value.slice(0, 1);
+                if (value.length >= 2) formatted += '-' + value.slice(1, 5);
+                if (value.length >= 6) formatted += '-' + value.slice(5, 10);
+                if (value.length >= 11) formatted += '-' + value.slice(10, 12);
+                if (value.length >= 13) formatted += '-' + value.slice(12, 13);
+                e.target.value = formatted;
+            }
+        });
+        
+        // ส่งฟอร์มเช็คชื่อ
+        document.getElementById('checkinForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            hideMessages();
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('submitBtn').disabled = true;
+            
+            const formData = {
+                timestamp: new Date().toISOString(),
+                sessionId: sessionData.sessionId,
+                sessionName: sessionData.sessionName,
+                sessionDate: sessionData.sessionDate,
+                sessionTime: sessionData.sessionTime,
+                location: sessionData.location,
+                instructor: sessionData.instructor,
+                citizenId: document.getElementById('citizenId').value.replace(/\D/g, ''),
+                fullName: document.getElementById('fullName').value,
+                nickname: document.getElementById('nickname').value,
+                birthDate: document.getElementById('birthDate').value,
+                address: document.getElementById('address').value
+            };
+            
+            try {
+                const result = await submitToGoogleSheets(formData);
+                
+                if (result.success) {
+                    showSuccess(`เช็คชื่อสำเร็จ คุณ${formData.nickname}!`);
+                    document.getElementById('checkinForm').reset();
+                    document.getElementById('qrDataDisplay').classList.add('hidden');
+                } else {
+                    showError('ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่');
+                }
+                
+            } catch (error) {
+                console.error('Submit error:', error);
+                showError('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('submitBtn').disabled = false;
+            }
+        });
+        
+        // เริ่มต้นเมื่อโหลดหน้า
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSessionData();
+        });
+    </script>
+</body>
+</html>
