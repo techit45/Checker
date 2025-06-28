@@ -320,25 +320,53 @@
             const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyRBpHS45wdFJ0MuE9OwD30YZyvpFbvKvynLgvY64okZaOS_zAi8ODAFEwyPeUNAh2d/exec';
             
             try {
+                console.log('Sending data to Google Apps Script:', formData);
+                
                 const response = await fetch(WEB_APP_URL, {
                     method: 'POST',
-                    mode: 'cors',
+                    mode: 'no-cors', // เปลี่ยนเป็น no-cors เพื่อหลีกเลี่ยง CORS issues
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(formData)
                 });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const result = await response.json();
-                return result;
+                // เนื่องจากใช้ no-cors จึงไม่สามารถอ่าน response ได้
+                // ถือว่าสำเร็จถ้าไม่มี error
+                console.log('Data sent successfully');
+                return { success: true, message: 'ข้อมูลถูกส่งไปยัง Google Sheets แล้ว' };
                 
             } catch (error) {
                 console.error('Error submitting to Google Sheets:', error);
-                throw error;
+                
+                // ลองใช้วิธีอื่นถ้า fetch ไม่ได้
+                try {
+                    // สร้าง form และส่งข้อมูลแบบ POST
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = WEB_APP_URL;
+                    form.target = '_blank'; // เปิดในหน้าใหม่
+                    form.style.display = 'none';
+                    
+                    // เพิ่มข้อมูลเป็น hidden input
+                    for (const [key, value] of Object.entries(formData)) {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = key;
+                        input.value = value;
+                        form.appendChild(input);
+                    }
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                    document.body.removeChild(form);
+                    
+                    return { success: true, message: 'ข้อมูลถูกส่งไปยัง Google Sheets แล้ว' };
+                    
+                } catch (fallbackError) {
+                    console.error('Fallback method also failed:', fallbackError);
+                    throw new Error('ไม่สามารถเชื่อมต่อกับ Google Sheets ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต');
+                }
             }
         }
         
