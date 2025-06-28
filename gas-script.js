@@ -18,8 +18,8 @@ function doPost(e) {
       createHeaders(sheet);
     }
     
-    // ตรวจสอบข้อมูลซ้ำ
-    const isDuplicate = checkDuplicateEntry(sheet, data.citizenId, data.sessionId);
+    // ตรวจสอบข้อมูลซ้ำ (ใช้ชื่อ-นามสกุลแทนหมายเลขบัตรประชาชน)
+    const isDuplicate = checkDuplicateEntry(sheet, data.fullName, data.sessionId);
     if (isDuplicate) {
       return ContentService.createTextOutput(JSON.stringify({
         success: false,
@@ -36,11 +36,8 @@ function doPost(e) {
       data.sessionTime,          // เวลาอบรม
       data.location,             // สถานที่
       data.instructor,           // ผู้สอน
-      data.citizenId,            // หมายเลขบัตรประชาชน
       data.fullName,             // ชื่อ-นามสกุล
-      data.nickname,             // ชื่อเล่น
-      data.birthDate,            // วันเกิด
-      data.address               // ที่อยู่
+      data.nickname              // ชื่อเล่น
     ];
     
     sheet.appendRow(newRow);
@@ -78,11 +75,8 @@ function createHeaders(sheet) {
     'เวลาอบรม',
     'สถานที่',
     'ผู้สอน',
-    'หมายเลขบัตรประชาชน',
     'ชื่อ-นามสกุล',
-    'ชื่อเล่น',
-    'วันเกิด',
-    'ที่อยู่'
+    'ชื่อเล่น'
   ];
   
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
@@ -95,16 +89,16 @@ function createHeaders(sheet) {
   headerRange.setHorizontalAlignment('center');
 }
 
-function checkDuplicateEntry(sheet, citizenId, sessionId) {
+function checkDuplicateEntry(sheet, fullName, sessionId) {
   const data = sheet.getDataRange().getValues();
   
   // ข้าม header row (index 0)
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
     const rowSessionId = row[1]; // column B (รหัสการอบรม)
-    const rowCitizenId = row[7]; // column H (หมายเลขบัตรประชาชน)
+    const rowFullName = row[7];  // column H (ชื่อ-นามสกุล)
     
-    if (rowSessionId === sessionId && rowCitizenId === citizenId) {
+    if (rowSessionId === sessionId && rowFullName === fullName) {
       return true;
     }
   }
@@ -133,11 +127,8 @@ function getCheckInData(sessionId) {
           sessionTime: row[4],
           location: row[5],
           instructor: row[6],
-          citizenId: row[7],
-          fullName: row[8],
-          nickname: row[9],
-          birthDate: row[10],
-          address: row[11]
+          fullName: row[7],
+          nickname: row[8]
         });
       }
     }
@@ -192,8 +183,7 @@ function generateReport(sessionId) {
       participants: data.map(participant => ({
         checkInTime: participant.timestamp,
         fullName: participant.fullName,
-        nickname: participant.nickname,
-        citizenId: participant.citizenId
+        nickname: participant.nickname
       }))
     };
     

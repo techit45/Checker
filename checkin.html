@@ -209,28 +209,10 @@
         </div>
         
         <div class="content">
-            <div class="scanner-section">
-                <h2>🔍 สแกน QR Code บัตรประชาชน</h2>
-                <div id="reader"></div>
-                <div class="scanner-controls">
-                    <button id="startScanBtn">📷 เริ่มสแกน</button>
-                    <button id="stopScanBtn" style="display: none;">⏹️ หยุดสแกน</button>
-                </div>
-                <button class="toggle-manual" id="toggleManualBtn">✏️ กรอกข้อมูลด้วยตนเอง</button>
-            </div>
             
-            <div class="qr-data-display hidden" id="qrDataDisplay">
-                <h4>ข้อมูลจาก QR Code:</h4>
-                <div id="qrDataContent"></div>
-            </div>
-            
-            <div class="manual-section hidden" id="manualSection">
-                <h3>📝 กรอกข้อมูลด้วยตนเอง</h3>
+            <div class="manual-section" id="manualSection">
+                <h3>📝 กรอกข้อมูลเพื่อเช็คชื่อ</h3>
                 <form id="checkinForm">
-                    <div class="form-group">
-                        <label for="citizenId">หมายเลขบัตรประชาชน:</label>
-                        <input type="text" id="citizenId" placeholder="x-xxxx-xxxxx-xx-x" maxlength="17" required>
-                    </div>
                     
                     <div class="form-group">
                         <label for="fullName">ชื่อ-นามสกุล:</label>
@@ -242,15 +224,7 @@
                         <input type="text" id="nickname" placeholder="ชื่อเล่น" required>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="birthDate">วันเกิด:</label>
-                        <input type="date" id="birthDate" required>
-                    </div>
                     
-                    <div class="form-group">
-                        <label for="address">ที่อยู่:</label>
-                        <textarea id="address" rows="3" placeholder="ที่อยู่ตามบัตรประชาชน" required></textarea>
-                    </div>
                     
                     <button type="submit" id="submitBtn">✅ ยืนยันการเช็คชื่อ</button>
                 </form>
@@ -307,148 +281,15 @@
             });
         }
         
-        // เริ่มการสแกน QR Code
-        function startScanning() {
-            if (isScanning) return;
-            
-            html5QrcodeScanner = new Html5Qrcode("reader");
-            
-            Html5Qrcode.getCameras().then(devices => {
-                if (devices && devices.length) {
-                    const cameraId = devices[0].id;
-                    
-                    html5QrcodeScanner.start(
-                        cameraId,
-                        {
-                            fps: 10,
-                            qrbox: { width: 250, height: 250 }
-                        },
-                        onScanSuccess,
-                        onScanFailure
-                    ).then(() => {
-                        isScanning = true;
-                        document.getElementById('startScanBtn').style.display = 'none';
-                        document.getElementById('stopScanBtn').style.display = 'inline-block';
-                    }).catch(err => {
-                        showError('ไม่สามารถเปิดกล้องได้: ' + err);
-                    });
-                } else {
-                    showError('ไม่พบกล้องในอุปกรณ์');
-                }
-            }).catch(err => {
-                showError('ไม่สามารถเข้าถึงกล้องได้: ' + err);
-            });
-        }
         
-        // หยุดการสแกน
-        function stopScanning() {
-            if (html5QrcodeScanner && isScanning) {
-                html5QrcodeScanner.stop().then(() => {
-                    isScanning = false;
-                    document.getElementById('startScanBtn').style.display = 'inline-block';
-                    document.getElementById('stopScanBtn').style.display = 'none';
-                }).catch(err => {
-                    console.error('Error stopping scanner:', err);
-                });
-            }
-        }
         
-        // เมื่อสแกน QR Code สำเร็จ
-        function onScanSuccess(decodedText, decodedResult) {
-            console.log('QR Code scanned:', decodedText);
-            
-            try {
-                // ลองแปลงข้อมูล QR Code บัตรประชาชน
-                const qrData = parseThaiIDCardQR(decodedText);
-                
-                if (qrData) {
-                    displayQRData(qrData);
-                    populateForm(qrData);
-                    showManualSection();
-                    stopScanning();
-                } else {
-                    showError('QR Code ไม่ใช่ของบัตรประชาชนไทย');
-                }
-                
-            } catch (error) {
-                console.error('Error parsing QR data:', error);
-                showError('ไม่สามารถอ่านข้อมูลจาก QR Code ได้');
-            }
-        }
         
-        function onScanFailure(error) {
-            // ไม่ต้องแสดง error ทุกครั้งที่สแกนไม่สำเร็จ
-        }
         
-        // แปลงข้อมูล QR Code บัตรประชาชนไทย
-        function parseThaiIDCardQR(qrText) {
-            // QR Code บัตรประชาชนไทยมีรูปแบบ: 
-            // หมายเลขบัตร|ชื่อ|นามสกุล|วันเกิด|ที่อยู่|...
-            const parts = qrText.split('|');
-            
-            if (parts.length >= 5) {
-                const birthDateParts = parts[3].split('/');
-                let birthDate = '';
-                if (birthDateParts.length === 3) {
-                    // แปลง DD/MM/YYYY (BE) เป็น YYYY-MM-DD (CE)
-                    const year = parseInt(birthDateParts[2]) - 543; // แปลง พ.ศ. เป็น ค.ศ.
-                    birthDate = `${year}-${birthDateParts[1].padStart(2, '0')}-${birthDateParts[0].padStart(2, '0')}`;
-                }
-                
-                return {
-                    citizenId: parts[0],
-                    firstName: parts[1],
-                    lastName: parts[2],
-                    fullName: `${parts[1]} ${parts[2]}`,
-                    birthDate: birthDate,
-                    address: parts[4]
-                };
-            }
-            
-            return null;
-        }
         
-        // แสดงข้อมูลที่อ่านได้จาก QR Code
-        function displayQRData(qrData) {
-            const qrDataDisplay = document.getElementById('qrDataDisplay');
-            const qrDataContent = document.getElementById('qrDataContent');
-            
-            qrDataContent.innerHTML = `
-                <p><strong>หมายเลขบัตรประชาชน:</strong> ${qrData.citizenId}</p>
-                <p><strong>ชื่อ-นามสกุล:</strong> ${qrData.fullName}</p>
-                <p><strong>วันเกิด:</strong> ${formatDate(qrData.birthDate)}</p>
-                <p><strong>ที่อยู่:</strong> ${qrData.address}</p>
-            `;
-            
-            qrDataDisplay.classList.remove('hidden');
-        }
         
-        // เติมข้อมูลในฟอร์ม
-        function populateForm(qrData) {
-            document.getElementById('citizenId').value = formatCitizenId(qrData.citizenId);
-            document.getElementById('fullName').value = qrData.fullName;
-            document.getElementById('birthDate').value = qrData.birthDate;
-            document.getElementById('address').value = qrData.address;
-        }
         
-        // จัดรูปแบบหมายเลขบัตรประชาชน
-        function formatCitizenId(citizenId) {
-            const cleaned = citizenId.replace(/\D/g, '');
-            if (cleaned.length === 13) {
-                return `${cleaned.slice(0,1)}-${cleaned.slice(1,5)}-${cleaned.slice(5,10)}-${cleaned.slice(10,12)}-${cleaned.slice(12,13)}`;
-            }
-            return citizenId;
-        }
         
-        // แสดงส่วนกรอกข้อมูลด้วยตนเอง
-        function showManualSection() {
-            document.getElementById('manualSection').classList.remove('hidden');
-        }
         
-        // ซ่อนส่วนกรอกข้อมูลด้วยตนเอง
-        function hideManualSection() {
-            document.getElementById('manualSection').classList.add('hidden');
-        }
         
         // แสดงข้อความสำเร็จ
         function showSuccess(message) {
@@ -502,34 +343,8 @@
         }
         
         // Event Listeners
-        document.getElementById('startScanBtn').addEventListener('click', startScanning);
-        document.getElementById('stopScanBtn').addEventListener('click', stopScanning);
         
-        document.getElementById('toggleManualBtn').addEventListener('click', function() {
-            const manualSection = document.getElementById('manualSection');
-            if (manualSection.classList.contains('hidden')) {
-                showManualSection();
-                this.textContent = '📷 กลับไปสแกน QR Code';
-            } else {
-                hideManualSection();
-                this.textContent = '✏️ กรอกข้อมูลด้วยตนเอง';
-            }
-        });
         
-        // จัดรูปแบบหมายเลขบัตรประชาชนขณะพิมพ์
-        document.getElementById('citizenId').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length > 13) value = value.slice(0, 13);
-            
-            if (value.length >= 1) {
-                let formatted = value.slice(0, 1);
-                if (value.length >= 2) formatted += '-' + value.slice(1, 5);
-                if (value.length >= 6) formatted += '-' + value.slice(5, 10);
-                if (value.length >= 11) formatted += '-' + value.slice(10, 12);
-                if (value.length >= 13) formatted += '-' + value.slice(12, 13);
-                e.target.value = formatted;
-            }
-        });
         
         // ส่งฟอร์มเช็คชื่อ
         document.getElementById('checkinForm').addEventListener('submit', async function(e) {
@@ -547,11 +362,8 @@
                 sessionTime: sessionData.sessionTime,
                 location: sessionData.location,
                 instructor: sessionData.instructor,
-                citizenId: document.getElementById('citizenId').value.replace(/\D/g, ''),
                 fullName: document.getElementById('fullName').value,
-                nickname: document.getElementById('nickname').value,
-                birthDate: document.getElementById('birthDate').value,
-                address: document.getElementById('address').value
+                nickname: document.getElementById('nickname').value
             };
             
             try {
@@ -560,7 +372,6 @@
                 if (result.success) {
                     showSuccess(`เช็คชื่อสำเร็จ คุณ${formData.nickname}!`);
                     document.getElementById('checkinForm').reset();
-                    document.getElementById('qrDataDisplay').classList.add('hidden');
                 } else {
                     showError('ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่');
                 }
