@@ -189,7 +189,17 @@
             };
             
             // สร้าง URL สำหรับหน้าเช็คชื่อ (ปรับให้เหมาะกับ GitHub Pages)
-            const baseURL = window.location.origin + window.location.pathname.replace('/instructor.html', '/Checker/');
+            const currentPath = window.location.pathname;
+            let baseURL;
+            
+            if (currentPath.includes('/Checker/')) {
+                // กรณีเข้าผ่าน GitHub Pages
+                baseURL = window.location.origin + currentPath.replace('/instructor.html', '/');
+            } else {
+                // กรณีเข้าผ่าน localhost หรือ direct file
+                baseURL = window.location.origin + window.location.pathname.replace('instructor.html', '');
+            }
+            
             const checkInURL = `${baseURL}checkin.html?${new URLSearchParams(sessionData).toString()}`;
             
             // แสดง URL
